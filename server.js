@@ -62,11 +62,10 @@ app.get('/api/v1/parks/find', (req, res) => {
         let randInd = Math.floor(Math.random() * response.body.results.length);
 
         //TODO: Specify what we're grabbing from the API here. Maybe include some logic to elimate possibility of repeats. I think the chance of repeats is so small we might be able to ignore it.
-        response.body.animals[i].name = response.body.results[randInd].species_guess;
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
+        response.body.animals[i].name = response.body.results[randInd].taxon.preferred_connom_name;
+        response.body.animals[i].observed_on = response.body.results[randInd].observed_on; //change 
+        response.body.animals[i].wiki = response.body.results[randInd].taxon.wikipedia_url; //change 
+        response.body.animals[i].photo = response.body.results[randInd].taxon.default_phot.square_url; //change 
       }
 
     })

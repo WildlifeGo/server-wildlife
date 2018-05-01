@@ -88,3 +88,45 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //////////
 //TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
+
+
+function loadBooks() {
+
+
+  console.log('loadBooks function called');
+  client.query('SELECT COUNT(*) FROM books')
+    .then(result => {
+
+      if (!parseInt(result.rows[0].count)) {
+        fs.readFile('../client/data/books.json', 'utf8', (err, fd) => {
+          JSON.parse(fd).forEach(ele => {
+            client.query(`
+              INSERT INTO
+              books(title, author, isbn, image_url, description)
+              VALUES ($1, $2, $3, $4, $5);
+            `, [ele.title, ele.author, ele.isbn, ele.image_url, ele.description])
+          })
+        })
+      }
+    })
+}
+
+function loadDB() {
+
+  console.log('loadDB function called');
+  client.query(`
+    CREATE TABLE IF NOT EXISTS books (
+      book_id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      author VARCHAR(255) NOT NULL,
+      isbn VARCHAR (255) NOT NULL,
+      image_url VARCHAR(255) NOT NULL,
+      description TEXT);`)
+    .then(() => {
+      loadBooks();
+    })
+    .catch(err => {
+      console.error(err);
+    });
+}
+

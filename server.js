@@ -12,7 +12,9 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT;
 const CLIENT_URL = process.env.CLIENT_URL;
-const TOKEN = process.env.TOKEN; //This would be used for admin password. Likely delete.
+// keeping token for now
+// const TOKEN = process.env.TOKEN; 
+//This would be used for admin password. Likely delete.
 
 
 // Database Setup
@@ -73,7 +75,7 @@ app.get('/api/v1/parks/find', (req, res) => {
 
     // .then(response => console.log(response.body.results[1].species_guess)
 
-    
+
 
     .then(data => res.send(data))
     .catch(console.error);
@@ -88,23 +90,36 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //////////
 //TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
+function loadUsers() {
+  // leaving what is in quotes blank
+  fs.readFile('', 'utf8', (err, fd) => {
+    JSON.parse(fd).forEach(elem => {
+      client.query(
+        'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
+        [elem.username, elem.password]
+      )
+        .catch(console.error);
+    });
+  })
+}
 
-
-function loadBooks() {
-
-
-  console.log('loadBooks function called');
-  client.query('SELECT COUNT(*) FROM books')
+function loadScores() {
+  client.query('SELECT * FROM highscores')
     .then(result => {
-
-      if (!parseInt(result.rows[0].count)) {
-        fs.readFile('../client/data/books.json', 'utf8', (err, fd) => {
-          JSON.parse(fd).forEach(ele => {
+      if (!parseint(result.rows[0].count)) {
+        // leaving what is in quotes blank again.
+        fs.readFile('', 'utf8', (err, fd) => {
+          JSON.parse(fd).forEach(elem => {
             client.query(`
-              INSERT INTO
-              books(title, author, isbn, image_url, description)
-              VALUES ($1, $2, $3, $4, $5);
-            `, [ele.title, ele.author, ele.isbn, ele.image_url, ele.description])
+            INSERT INTO 
+            highscores(user_id, username, animals_spotted)
+            SELECT user_id, $1, $2
+            FROM usertable
+            WHERE username=$1;
+            `,
+              [elem.user_id, elem.username, elem.animal_spotted]
+            )
+              .catch(console.error);
           })
         })
       }
@@ -112,21 +127,27 @@ function loadBooks() {
 }
 
 function loadDB() {
-
-  console.log('loadDB function called');
   client.query(`
-    CREATE TABLE IF NOT EXISTS books (
-      book_id SERIAL PRIMARY KEY,
-      title VARCHAR(255) NOT NULL,
-      author VARCHAR(255) NOT NULL,
-      isbn VARCHAR (255) NOT NULL,
-      image_url VARCHAR(255) NOT NULL,
-      description TEXT);`)
-    .then(() => {
-      loadBooks();
-    })
-    .catch(err => {
-      console.error(err);
-    });
+    CREATE TABLE IF NOT EXISTS
+    usertable (
+      user_id SERIAL PRIMARY KEY,
+      username VARCHAR(25) NOT NULL,
+      password VARCHAR(25) NOT NULL,
+      email TEXT NOT NULL
+    );
+  `)
+    .then(loadUsers)
+    .catch(console.error);
+
+  client.query(`
+  CREATE TABLE IF NOT EXISTS
+  highscores (
+    highscore_id SERIAL PRIMARY KEY,
+    animals_spotted INTEGER,
+    user_id INTEGER NOT NULL
+    );`
+  )
+    .then(loadScores)
+    .catch(console.error);
 }
 

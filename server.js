@@ -30,6 +30,10 @@ app.use(express.urlencoded({
 //Query API to retrieve the data we want.
 //TODO: I think we should have dynamic endpoints to represent each park. Like the /:id kinda thing.
 app.get('/api/v1/parks/find', (req, res) => {
+  console.log('we hit the server');
+
+  console.log(req.query);
+
   let url = 'https://api.inaturalist.org/v1/observations';
 
   superagent.get(url)
@@ -37,17 +41,23 @@ app.get('/api/v1/parks/find', (req, res) => {
       'photos': true
     })
     .query({
-      'lat': req.lat
+      'lat': req.query.lat
     })
     .query({
-      'lng': req.long
+      'lng': req.query.long
     })
     .query({
-      'radius': req.radius
+      'radius': req.query.radius
     })
     .then(response => {
 
+      console.log(response.body.results);
+      console.log(req.query.index);
+
+
       //We have to select some random animals here. Should we parse out the data here on the server side? Or send the big thing over to the client model and do it there? Does it matter? We'll do server side for now...
+
+      // console.log(response.body.results[0]);
 
       //In case we want to allow user to choose number of animals displayed, we can modify the next line of code to make dynamic.
       let numAnimalsDisplayed = 5;
@@ -61,21 +71,35 @@ app.get('/api/v1/parks/find', (req, res) => {
         //Generate random index
         let randInd = Math.floor(Math.random() * response.body.results.length);
 
+
+        // console.log(response.body.results[randInd].taxon.preferred_common_name);
+
         //TODO: Specify what we're grabbing from the API here. Maybe include some logic to elimate possibility of repeats. I think the chance of repeats is so small we might be able to ignore it.
-        response.body.animals[i].name = response.body.results[randInd].species_guess;
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
+
+        let currObj = {
+
+          park: req.query.index,
+          name: response.body.results[randInd].taxon.preferred_common_name !== null ? response.body.results[randInd].taxon.preferred_common_name : '',
+          observed_on: response.body.results[randInd].observed_on !== null ? response.body.results[randInd].observed_on : '',
+          wiki: response.body.results[randInd].taxon.wikipedia_url !== null ? response.body.results[randInd].taxon.wikipedia_url : '',
+          image: response.body.results[randInd].taxon.default_photo.square_url !== null ? response.body.results[randInd].taxon.default_photo.square_url : '',
+
+        };
+
+        response.body.animals.push(currObj);
+
       }
+
+      return response.body.animals;
 
     })
 
     // .then(response => console.log(response.body.results[1].species_guess)
 
-    
-
-    .then(data => res.send(data))
+    .then(data => {
+      console.log(data);
+      res.send(data);
+    })
     .catch(console.error);
 });
 
@@ -129,4 +153,3 @@ function loadDB() {
       console.error(err);
     });
 }
-

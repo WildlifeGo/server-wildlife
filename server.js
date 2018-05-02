@@ -41,6 +41,9 @@ app.get('/api/v1/parks/find', (req, res) => {
       'photos': true
     })
     .query({
+      'quality_grade': 'research'
+    })
+    .query({
       'lat': req.query.lat
     })
     .query({

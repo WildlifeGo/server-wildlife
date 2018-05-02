@@ -12,9 +12,7 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT;
 const CLIENT_URL = process.env.CLIENT_URL;
-// keeping token for now
-// const TOKEN = process.env.TOKEN; 
-//This would be used for admin password. Likely delete.
+const api_key = 'AIzaSyCoXYAtJ8tWx1VDuinGJgoUb0bO5KIPz-A';
 
 
 // Database Setup
@@ -25,13 +23,29 @@ client.on('error', err => console.error(err));
 // Application Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({
+app.use(bodyparser.urlencoded({
   extended: true
 }));
 
 //Query API to retrieve the data we want.
-//TODO: I think we should have dynamic endpoints to represent each park. Like the /:id kinda thing.
+app.get('api/v1/map_test/:location', (req, res) => {
+  console.log('in app.get');
+
+  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${userLocation}&key=${api_key}`)
+  .then(data => {
+    console.log(data.body);
+    res.send('success', res.body)
+  })
+  .catch(err => {
+    console.error('we have an error: ', err);
+  })
+})
+
 app.get('/api/v1/parks/find', (req, res) => {
+  console.log('we hit the server');
+
+  console.log(req.query);
+
   let url = 'https://api.inaturalist.org/v1/observations';
 
   superagent.get(url)
@@ -39,17 +53,26 @@ app.get('/api/v1/parks/find', (req, res) => {
       'photos': true
     })
     .query({
-      'lat': req.lat
+      'quality_grade': 'research'
     })
     .query({
-      'lng': req.long
+      'lat': req.query.lat
     })
     .query({
-      'radius': req.radius
+      'lng': req.query.long
+    })
+    .query({
+      'radius': req.query.radius
     })
     .then(response => {
 
+      console.log(response.body.results);
+      console.log(req.query.index);
+
+
       //We have to select some random animals here. Should we parse out the data here on the server side? Or send the big thing over to the client model and do it there? Does it matter? We'll do server side for now...
+
+      // console.log(response.body.results[0]);
 
       //In case we want to allow user to choose number of animals displayed, we can modify the next line of code to make dynamic.
       let numAnimalsDisplayed = 5;
@@ -63,21 +86,35 @@ app.get('/api/v1/parks/find', (req, res) => {
         //Generate random index
         let randInd = Math.floor(Math.random() * response.body.results.length);
 
+
+        // console.log(response.body.results[randInd].taxon.preferred_common_name);
+
         //TODO: Specify what we're grabbing from the API here. Maybe include some logic to elimate possibility of repeats. I think the chance of repeats is so small we might be able to ignore it.
-        response.body.animals[i].name = response.body.results[randInd].species_guess;
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
-        response.body.animals[i].name = response.body.results[randInd].species_guess; //change 
+
+        let currObj = {
+
+          park: req.query.index,
+          name: response.body.results[randInd].taxon.preferred_common_name !== null ? response.body.results[randInd].taxon.preferred_common_name : '',
+          observed_on: response.body.results[randInd].observed_on !== null ? response.body.results[randInd].observed_on : '',
+          wiki: response.body.results[randInd].taxon.wikipedia_url !== null ? response.body.results[randInd].taxon.wikipedia_url : '',
+          image: response.body.results[randInd].taxon.default_photo.square_url !== null ? response.body.results[randInd].taxon.default_photo.square_url : '',
+
+        };
+
+        response.body.animals.push(currObj);
+
       }
+
+      return response.body.animals;
 
     })
 
     // .then(response => console.log(response.body.results[1].species_guess)
 
-
-
-    .then(data => res.send(data))
+    .then(data => {
+      console.log(data);
+      res.send(data);
+    })
     .catch(console.error);
 });
 
@@ -90,6 +127,19 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //////////
 //TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
+function loadUsers() {
+  // leaving what is in quotes blank
+  fs.readFile('', 'utf8', (err, fd) => {
+    JSON.parse(fd).forEach(elem => {
+      client.query(
+        'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
+        [elem.username, elem.password]
+      )
+        .catch(console.error);
+    });
+  })
+}
+
 function loadUsers() {
   // leaving what is in quotes blank
   fs.readFile('', 'utf8', (err, fd) => {

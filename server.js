@@ -27,19 +27,27 @@ app.use(bodyparser.urlencoded({
   extended: true
 }));
 
+
 //Query API to retrieve the data we want.
+app.get('/signin/:user', (req, res) => {
+  let userInfo = req.params.id;
+  console.log('in app.get');
+  console.log(userInfo);
+});
+
+
 app.get('api/v1/map_test/:location', (req, res) => {
   console.log('in app.get');
 
   superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${userLocation}&key=${api_key}`)
-  .then(data => {
-    console.log(data.body);
-    res.send('success', res.body)
-  })
-  .catch(err => {
-    console.error('we have an error: ', err);
-  })
-})
+    .then(data => {
+      console.log(data.body);
+      res.send('success', res.body);
+    })
+    .catch(err => {
+      console.error('we have an error: ', err);
+    });
+});
 
 app.get('/api/v1/parks/find', (req, res) => {
   console.log('we hit the server');
@@ -137,7 +145,7 @@ function loadUsers() {
       )
         .catch(console.error);
     });
-  })
+  });
 }
 
 function loadUsers() {
@@ -150,7 +158,7 @@ function loadUsers() {
       )
         .catch(console.error);
     });
-  })
+  });
 }
 
 function loadScores() {
@@ -167,13 +175,13 @@ function loadScores() {
             FROM usertable
             WHERE username=$1;
             `,
-              [elem.user_id, elem.username, elem.animal_spotted]
+            [elem.user_id, elem.username, elem.animal_spotted]
             )
               .catch(console.error);
-          })
-        })
+          });
+        });
       }
-    })
+    });
 }
 
 function loadDB() {

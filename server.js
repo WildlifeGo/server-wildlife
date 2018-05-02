@@ -12,7 +12,7 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT;
 const CLIENT_URL = process.env.CLIENT_URL;
-const TOKEN = process.env.TOKEN; //This would be used for admin password. Likely delete.
+const api_key = 'AIzaSyCoXYAtJ8tWx1VDuinGJgoUb0bO5KIPz-A';
 
 
 // Database Setup
@@ -23,12 +23,24 @@ client.on('error', err => console.error(err));
 // Application Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({
+app.use(bodyparser.urlencoded({
   extended: true
 }));
 
 //Query API to retrieve the data we want.
-//TODO: I think we should have dynamic endpoints to represent each park. Like the /:id kinda thing.
+app.get('api/v1/map_test/:location', (req, res) => {
+  console.log('in app.get');
+
+  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${userLocation}&key=${api_key}`)
+  .then(data => {
+    console.log(data.body);
+    res.send('success', res.body)
+  })
+  .catch(err => {
+    console.error('we have an error: ', err);
+  })
+})
+
 app.get('/api/v1/parks/find', (req, res) => {
   console.log('we hit the server');
 
@@ -115,6 +127,7 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //////////
 //TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
+
 function loadUsers() {
   // leaving what is in quotes blank
   fs.readFile('', 'utf8', (err, fd) => {
@@ -175,3 +188,4 @@ function loadDB() {
     .then(loadScores)
     .catch(console.error);
 }
+

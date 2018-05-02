@@ -115,63 +115,63 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 //////////
 //TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
-function loadUsers() {
-  // leaving what is in quotes blank
-  fs.readFile('', 'utf8', (err, fd) => {
-    JSON.parse(fd).forEach(elem => {
-      client.query(
-        'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
-        [elem.username, elem.password]
-      )
-        .catch(console.error);
-    });
-  })
-}
+// function loadUsers() {
+//   // leaving what is in quotes blank
+//   fs.readFile('', 'utf8', (err, fd) => {
+//     JSON.parse(fd).forEach(elem => {
+//       client.query(
+//         'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
+//         [elem.username, elem.password]
+//       )
+//         .catch(console.error);
+//     });
+//   })
+// }
 
-function loadScores() {
-  client.query('SELECT * FROM highscores')
-    .then(result => {
-      if (!parseint(result.rows[0].count)) {
-        // leaving what is in quotes blank again.
-        fs.readFile('', 'utf8', (err, fd) => {
-          JSON.parse(fd).forEach(elem => {
-            client.query(`
-            INSERT INTO 
-            highscores(user_id, username, animals_spotted)
-            SELECT user_id, $1, $2
-            FROM usertable
-            WHERE username=$1;
-            `,
-              [elem.user_id, elem.username, elem.animal_spotted]
-            )
-              .catch(console.error);
-          })
-        })
-      }
-    })
-}
+// function loadScores() {
+//   client.query('SELECT * FROM highscores')
+//     .then(result => {
+//       if (!parseint(result.rows[0].count)) {
+//         // leaving what is in quotes blank again.
+//         fs.readFile('', 'utf8', (err, fd) => {
+//           JSON.parse(fd).forEach(elem => {
+//             client.query(`
+//             INSERT INTO 
+//             highscores(user_id, username, animals_spotted)
+//             SELECT user_id, $1, $2
+//             FROM usertable
+//             WHERE username=$1;
+//             `,
+//               [elem.user_id, elem.username, elem.animal_spotted]
+//             )
+//               .catch(console.error);
+//           })
+//         })
+//       }
+//     })
+// }
 
-function loadDB() {
-  client.query(`
-    CREATE TABLE IF NOT EXISTS
-    usertable (
-      user_id SERIAL PRIMARY KEY,
-      username VARCHAR(25) NOT NULL,
-      password VARCHAR(25) NOT NULL,
-      email TEXT NOT NULL
-    );
-  `)
-    .then(loadUsers)
-    .catch(console.error);
+// function loadDB() {
+//   client.query(`
+//     CREATE TABLE IF NOT EXISTS
+//     usertable (
+//       user_id SERIAL PRIMARY KEY,
+//       username VARCHAR(25) NOT NULL,
+//       password VARCHAR(25) NOT NULL,
+//       email TEXT NOT NULL
+//     );
+//   `)
+//     .then(loadUsers)
+//     .catch(console.error);
 
-  client.query(`
-  CREATE TABLE IF NOT EXISTS
-  highscores (
-    highscore_id SERIAL PRIMARY KEY,
-    animals_spotted INTEGER,
-    user_id INTEGER NOT NULL
-    );`
-  )
-    .then(loadScores)
-    .catch(console.error);
-}
+//   client.query(`
+//   CREATE TABLE IF NOT EXISTS
+//   highscores (
+//     highscore_id SERIAL PRIMARY KEY,
+//     animals_spotted INTEGER,
+//     user_id INTEGER NOT NULL
+//     );`
+//   )
+//     .then(loadScores)
+//     .catch(console.error);
+// }

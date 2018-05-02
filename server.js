@@ -40,16 +40,19 @@ app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
     .catch(err => {
       console.error('we have an error: ', err);
     })
-})
+
 
 app.get('/api/v1/parks/find', (req, res) => {
   console.log('we hit the server');
 
-  console.log(req.query);
+  console.log(req.query.lat);
 
   let url = 'https://api.inaturalist.org/v1/observations';
 
   superagent.get(url)
+    .query({
+      'per_page': '100'
+    })  
     .query({
       'photos': true
     })
@@ -66,27 +69,61 @@ app.get('/api/v1/parks/find', (req, res) => {
       'radius': req.query.radius
     })
     .then(response => {
+      var mammalsArray = response.body.results;
+      var birdsArray = response.body.results;
+      var insectsArray = response.body.results;
+      var plantsArray = response.body.results;
 
-      console.log(response.body.results);
-      console.log(req.query.index);
+      var mammals = mammalsArray.filter(obj =>
+        obj.taxon.iconic_taxon_name === 'Mammalia');
 
+        console.log('Mammals: ', mammals[0].taxon.preferred_common_name);
+
+      var birds = birdsArray.filter(obj1 =>
+        obj1.taxon.iconic_taxon_name === 'Aves');
+
+        console.log('Birdies ', birds[0].taxon.preferred_common_name);
+
+      var insects = insectsArray.filter(obj2 =>
+        obj2.taxon.iconic_taxon_name === 'Insecta');
+
+        console.log('Buggers: ', insects[0].taxon.preferred_common_name);
+
+      var plants = plantsArray.filter(obj3 =>
+        obj3.taxon.iconic_taxon_name === 'Plantae');
+
+      
+      console.log('FuckingWeednShit: ', plants[0].taxon.preferred_common_name);
 
       //In case we want to allow user to choose number of animals displayed, we can modify the next line of code to make dynamic.
-      let numAnimalsDisplayed = 5;
+      let numAnimalsDisplayed = 4;
 
       //Can we just create a new object property in the response.body like this
       response.body.animals = [];
 
+
+      //Loop through results to select 5 sightings and choose the properties we want from the API data.
+
+
+
       for (var i = 0; i < numAnimalsDisplayed; i++) {
 
-        let randInd = Math.floor(Math.random() * response.body.results.length);
+        //Generate random index
+        let animals = [mammals,birds,insects,plants];
+        let randInd0 = Math.floor(Math.random() * mammals.length);
+        let randInd1 = Math.floor(Math.random() * birds.length);
+        let randInd2 = Math.floor(Math.random() * insects.length);
+        let randInd3 = Math.floor(Math.random() * plants.length);
+        let randInd = [randInd0, randInd1, randInd2, randInd3];
+
 
         let currObj = {
           park: req.query.index,
-          name: response.body.results[randInd].taxon.preferred_common_name !== null ? response.body.results[randInd].taxon.preferred_common_name : '',
-          observed_on: response.body.results[randInd].observed_on !== null ? response.body.results[randInd].observed_on : '',
-          wiki: response.body.results[randInd].taxon.wikipedia_url !== null ? response.body.results[randInd].taxon.wikipedia_url : '',
-          image: response.body.results[randInd].taxon.default_photo.square_url !== null ? response.body.results[randInd].taxon.default_photo.square_url : '',
+
+          name: animals[i][randInd[i]].taxon.preferred_common_name !== null ? animals[i][randInd[i]].taxon.preferred_common_name : '',
+          observed_on: animals[i][randInd[i]].observed_on !== null ? animals[i][randInd[i]].observed_on : '',
+          wiki: animals[i][randInd[i]].taxon.wikipedia_url !== null ? animals[i][randInd[i]].taxon.wikipedia_url : '',
+          image: animals[i][randInd[i]].taxon.default_photo.square_url !== null ? animals[i][randInd[i]].taxon.default_photo.square_url : '',
         };
 
         response.body.animals.push(currObj);
@@ -128,8 +165,6 @@ app.put('/scorechange', (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
-
-////////// DB loaders \\\\\\\\\\\\\\
 
 function loadUsers() {
   // leaving what is in quotes blank

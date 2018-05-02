@@ -34,7 +34,7 @@ app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
   if (!location) {res.status(404).send('input location')};
   superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${api_key}`)
     .then(data => {
-      console.log(location, data.body.results[0].geometry.location);
+      console.log(data.body.results[0].formatted_address, data.body.results[0].geometry.location);
       res.send(200, res.body)
     })
     .catch(err => {

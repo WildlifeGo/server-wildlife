@@ -1,7 +1,7 @@
 'use strict';
 
-require('dotenv').congfig();
 // Application dependencies
+//require('dotenv').congfig();
 const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
@@ -13,7 +13,7 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT;
 const CLIENT_URL = process.env.CLIENT_URL;
-const api_key = token;
+const api_key = 'AIzaSyCoXYAtJ8tWx1VDuinGJgoUb0bO5KIPz-A';
 
 
 // Database Setup
@@ -29,13 +29,13 @@ app.use(bodyparser.urlencoded({
 }));
 
 //Query API to retrieve the data we want.
-app.get('api/v1/map_test/:location', (req, res) => {
-  console.log('in app.get');
-
-  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${userLocation}&key=${api_key}`)
+app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
+  let location = req.params.location;
+  if (!location) {res.status(404).send('input location')};
+  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${api_key}`)
     .then(data => {
-      console.log(data.body);
-      res.send('success', res.body)
+      console.log(location, data.body.results[0].geometry.location);
+      res.send(200, res.body)
     })
     .catch(err => {
       console.error('we have an error: ', err);
@@ -152,7 +152,7 @@ function loadScores() {
         fs.readFile('', 'utf8', (err, fd) => {
           JSON.parse(fd).forEach(elem => {
             client.query(`
-            INSERT INTO 
+            INSERT INTO
             highscores(user_id, username, animals_spotted)
             SELECT user_id, $1, $2
             FROM usertable
@@ -198,4 +198,3 @@ function loadDB() {
     );`
   )
 }
-

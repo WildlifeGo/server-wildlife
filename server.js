@@ -28,19 +28,27 @@ app.use(bodyparser.urlencoded({
   extended: true
 }));
 
+
 //Query API to retrieve the data we want.
-app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
-  let location = req.params.location;
-  if (!location) {res.status(404).send('input location')};
-  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${api_key}`)
+app.get('/signin/:user', (req, res) => {
+  let userInfo = req.params.id;
+  console.log('in app.get');
+  console.log(userInfo);
+});
+
+
+app.get('api/v1/map_test/:location', (req, res) => {
+  console.log('in app.get');
+
+  superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${userLocation}&key=${api_key}`)
     .then(data => {
-      console.log(location, data.body.results[0].geometry.location);
-      res.send(200, res.body)
+      console.log(data.body);
+      res.send('success', res.body);
     })
     .catch(err => {
       console.error('we have an error: ', err);
-    })
-})
+    });
+});
 
 app.get('/api/v1/parks/find', (req, res) => {
   console.log('we hit the server');
@@ -129,7 +137,20 @@ app.put('/scorechange', (req, res) => {
 
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
-////////// DB loaders \\\\\\\\\\\\\\
+//////////
+//TODO: Below here, we should do our psql database setup. Grab some sample code from previous labs that create tables if they don't exist and setup column names. This will be for user data. Something like primary key, username, password, number animals spotted, other stuff?
+function loadUsers() {
+  // leaving what is in quotes blank
+  fs.readFile('', 'utf8', (err, fd) => {
+    JSON.parse(fd).forEach(elem => {
+      client.query(
+        'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
+        [elem.username, elem.password]
+      )
+        .catch(console.error);
+    });
+  });
+}
 
 function loadUsers() {
   // leaving what is in quotes blank
@@ -141,7 +162,7 @@ function loadUsers() {
       )
         .catch(console.error);
     });
-  })
+  });
 }
 
 function loadScores() {
@@ -158,13 +179,13 @@ function loadScores() {
             FROM usertable
             WHERE id=$1;
             `,
-              [elem.user_id, elem.username, elem.animal_spotted]
+            [elem.user_id, elem.username, elem.animal_spotted]
             )
               .catch(console.error);
-          })
-        })
+          });
+        });
       }
-    })
+    });
 }
 
 function loadDB() {

@@ -42,8 +42,8 @@ app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
     })
     .catch(err => {
       console.error('we have an error: ', err);
-    })
-})
+    });
+});
 
 
 app.get('/api/v1/parks/find', (req, res) => {
@@ -166,6 +166,7 @@ app.get('/api/v1/parks/find', (req, res) => {
           observed_on: animals[i][randInd[i]].observed_on !== null ? animals[i][randInd[i]].observed_on : '',
           wiki: animals[i][randInd[i]].taxon.wikipedia_url !== null ? animals[i][randInd[i]].taxon.wikipedia_url : '',
           image: animals[i][randInd[i]].taxon.default_photo.square_url !== null ? animals[i][randInd[i]].taxon.default_photo.square_url : '',
+          seen: false,
         };
 
         response.body.animals.push(currObj);
@@ -183,23 +184,22 @@ app.get('/api/v1/parks/find', (req, res) => {
     .catch(console.error);
 });
 
+app.post('/api/v1/signin', (req, res) => {
+  let {username, password} = req.body;
+  console.log('app.post');
+  client.query(
+    'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
+    [username, password]
+  )
+    .then(res.sendStatus(201))
+    .catch(console.error);
+});
 
 app.get('*', (req, res) => res.redirect(CLIENT_URL));
 
-// app.post('/usersub', (req, res) => {
-//   client.query(
-//     `INSERT INTO usertable(username, password) VALUES($1, $2)
-//     ON CONFLICT DO NOTHING,`
-//     [request.body.username, request.body.password]
-//   )
-//     .catch(console.error)
-//     .then(queryTwo());
 
-//   function queryTwo() {
-//     client.query('INSERT INTO highscores(username, animals_spotted) VALUES($1, $2) ONCONFLICT DO NOTHING'
-//     [request.body.username, 0])
-//   }
-// });
+
+
 
 // app.put('/scorechange', (req, res) => {
 //   client.query('UPDATE highscores SET animals_spotted=$1 WHERE username=$2;'
@@ -244,6 +244,31 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //     })
 // }
 
+loadDB();
+
+function loadDB() {
+  client.query(`
+    CREATE TABLE IF NOT EXISTS
+    usertable (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(25) NOT NULL,
+      password VARCHAR(25) NOT NULL
+    );
+  `)
+    
+  client.query(`
+  CREATE TABLE IF NOT EXISTS
+  highscores (
+    highscore_id SERIAL PRIMARY KEY,
+    animals_spotted INTEGER,
+    user_id INTEGER NOT NULL REFERENCES usertable(id)
+    );`
+  )
+}
+
+
+// loadDB();
+
 // function loadDB() {
 //   client.query(`
 //     CREATE TABLE IF NOT EXISTS
@@ -253,8 +278,8 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //       password VARCHAR(25) NOT NULL,
 //     );
 //   `)
-//     .then(loadUsers)
-//     .catch(console.error);
+//     // .then(loadUsers)
+//     // .catch(console.error);
 
 //   client.query(`
 //   CREATE TABLE IF NOT EXISTS
@@ -264,8 +289,9 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //     user_id INTEGER NOT NULL REFERENCES usertable(id)
 //     );`
 //   )
-//     .then(loadScores)
-//     .catch(console.error);
+    // .then(loadScores)
+    // .catch(console.error);
+// }
 
 //   client.query(`
 //     CREATE TABLE IF NOT EXISTS

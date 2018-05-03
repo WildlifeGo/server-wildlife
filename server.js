@@ -139,7 +139,7 @@ app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 //sending login info to f=database
 app.post('/api/v1/signin', (req, res) => {
   let {username, password} = req.body;
-  console.log('app.post');
+  console.log('app.post', req.body);
   client.query(
     'INSERT INTO userinfo(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
     [username, password]

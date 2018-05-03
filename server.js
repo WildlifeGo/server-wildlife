@@ -35,11 +35,13 @@ app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
   superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${location}&key=${api_key}`)
     .then(data => {
       console.log(data.body.results[0].formatted_address, data.body.results[0].geometry.location);
-      res.send(200, res.body)
+      let locationData = [data.body.results[0].address_components[0].long_name, data.body.results[0].geometry.location];
+      res.send(locationData);
     })
     .catch(err => {
       console.error('we have an error: ', err);
     })
+  })
 
 
 app.get('/api/v1/parks/find', (req, res) => {

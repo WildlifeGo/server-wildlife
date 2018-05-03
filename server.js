@@ -153,16 +153,11 @@ app.post('/api/v1/signin', (req, res) => {
 
 
 function loadUsers() {
-  // leaving what is in quotes blank
-  fs.readFile('', 'utf8', (err, fd) => {
-    JSON.parse(fd).forEach(elem => {
-      client.query(
-        'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
-        [elem.username, elem.password]
-      )
-        .catch(console.error);
-    });
-  });
+  app.get('/api/v1/load_user', (req, res) => {
+    client.query('SELECT * FROM usertable;')
+      .then(data => {res.send(data);})
+      .catch(console.error);
+  })
 }
 
 function loadScores() {
@@ -179,7 +174,7 @@ function loadScores() {
             FROM usertable
             WHERE username=$1;
             `,
-            [elem.user_id, elem.username, elem.animal_spotted]
+              [elem.user_id, elem.username, elem.animal_spotted]
             )
               .catch(console.error);
           });

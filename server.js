@@ -169,10 +169,13 @@ app.get('/api/v1/parks/find', (req, res) => {
           animals[i] = animals[1];
         }
 
+       let ind='a'+i;
+
         let currObj = {
           park: req.query.index,
 
           name: animals[i][randInd[i]].taxon.preferred_common_name !== null ? animals[i][randInd[i]].taxon.preferred_common_name : '',
+          index: ind,
           observed_on: animals[i][randInd[i]].observed_on !== null ? animals[i][randInd[i]].observed_on : '',
           wiki: animals[i][randInd[i]].taxon.wikipedia_url !== null ? animals[i][randInd[i]].taxon.wikipedia_url : '',
           image: animals[i][randInd[i]].taxon.default_photo.square_url !== null ? animals[i][randInd[i]].taxon.default_photo.square_url : '',

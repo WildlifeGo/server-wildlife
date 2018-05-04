@@ -13,7 +13,7 @@ const bodyparser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT;
 const CLIENT_URL = process.env.CLIENT_URL;
-const api_key = 'AIzaSyCoXYAtJ8tWx1VDuinGJgoUb0bO5KIPz-A';
+const api_key = process.env.API_KEY;
 
 
 // Database Setup
@@ -201,8 +201,8 @@ app.post('/api/v1/signin', (req, res) => {
   } = req.body;
   console.log('app.post');
   client.query(
-      'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING', [username, password]
-    )
+    'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING', [username, password]
+  )
     .then(res.sendStatus(201))
     .catch(console.error);
 });
@@ -241,10 +241,10 @@ app.put('/api/v1/parks/submit', (req, res) => {
         WHERE username='${storedUser}';`
       ).then(
         client.query(`SELECT * FROM usertable WHERE username='${storedUser}';`)
-        .then(results => {
-          console.log('final from server ' + results.rows[0].animals);
-          res.send(results.rows[0].animals);
-        })
+          .then(results => {
+            console.log('final from server ' + results.rows[0].animals);
+            res.send(results.rows[0].animals);
+          })
       );
     })
     .catch(console.error);
@@ -273,7 +273,7 @@ function loadDB() {
       password VARCHAR(25) NOT NULL,
       animals text[]
     );
-  `)
+  `);
   // .then(
   //   client.query(`
   // INSERT INTO usertable(username, password, animals) VALUES('test','test','{test}') ON CONFLICT DO NOTHING;

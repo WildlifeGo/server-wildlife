@@ -45,6 +45,16 @@ app.get('/api/v1/parks/googlemaps/:location', (req, res) => {
     });
 });
 
+app.get('/api/v1/load_user', (req, res) => {
+  console.log('loading user');
+  client.query(`SELECT * FROM usertable;`)
+  .then(results => {
+    console.log(results.rows);
+    let tableData = results.rows;
+    res.send(tableData);
+    //res.send(tableData);
+  })
+});
 
 app.get('/api/v1/parks/find', (req, res) => {
   console.log('we hit the server');
@@ -209,16 +219,7 @@ app.get('*', (req, res) => res.redirect(CLIENT_URL));
 app.listen(PORT, () => console.log(`Listening on port: ${PORT}`));
 
 // function loadUsers() {
-//   // leaving what is in quotes blank
-//   fs.readFile('', 'utf8', (err, fd) => {
-//     JSON.parse(fd).forEach(elem => {
-//       client.query(
-//         'INSERT INTO usertable(username, password) VALUES($1, $2) ON CONFLICT DO NOTHING',
-//         [elem.username, elem.password]
-//       )
-//         .catch(console.error);
-//     });
-//   })
+//
 // }
 
 // function loadScores() {
@@ -255,7 +256,7 @@ function loadDB() {
       password VARCHAR(25) NOT NULL
     );
   `)
-    
+
   client.query(`
   CREATE TABLE IF NOT EXISTS
   highscores (

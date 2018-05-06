@@ -133,15 +133,10 @@ app.get('/api/v1/parks/find', (req, res) => {
           image: animals[i][randInd[i]].taxon.default_photo.square_url !== null ? animals[i][randInd[i]].taxon.default_photo.square_url : '',
           seen: false,
         };
-
         response.body.animals.push(currObj);
-
       }
-
       return response.body.animals;
-
     })
-
     .then(data => {
       res.send(data);
     })
